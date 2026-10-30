@@ -42,7 +42,7 @@
             <h1 class="text-base sm:text-lg font-black tracking-tight text-white">صيدليات الدواء — فرع 1081</h1>
             <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40">ينبع الصناعية</span>
           </div>
-          <p class="text-[11px] text-slate-300">منظومة متابعة التأمين المزمن ووصفتي ريفيل | عرض مستقل لكل شهر (سحابي مباشر)</p>
+          <p class="text-[11px] text-slate-300">منظومة متابعة التأمين المزمن ووصفتي ريفيل | التجديد الصرف التلقائي بعد 3 أشهر</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@
           <input type="text" id="shiftPharmacistInput" value="صيدلاني الفرع" placeholder="اسم صيدلي الشفت" class="bg-transparent text-white text-xs font-bold w-28 focus:outline-none border-b border-transparent focus:border-sky-400">
         </div>
 
-        <!-- Quick Data Tools (Export / Sync) -->
+        <!-- Quick Data Tools -->
         <button id="btnExportExcel" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-2 rounded-xl transition shadow flex items-center gap-1 active:scale-95" title="تصدير كملف إكسل متوافق مع اللغة العربية">
           <span>📊</span>
           <span>تصدير Excel</span>
@@ -244,6 +244,17 @@
           </div>
         </div>
 
+        <!-- Auto Refill Option -->
+        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="autoGenerateRefill" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+            <div>
+              <span class="font-bold text-amber-900 block">إعادة الصرف التلقائي (بعد 3 أشهر) 🔄</span>
+              <span class="text-[10px] text-amber-700">إضافة نسخة تلقائية للمريض في جدول الشهر القادم بعد 3 أشهر من تاريخ الصرف.</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Row 5: Contact Status & Refill Wish -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
@@ -399,6 +410,15 @@
         .catch(err => console.error("خطأ في جلب البيانات:", err));
     }
 
+    function setDefaultDatesForSelectedMonth() {
+      const activeMonth = document.getElementById('monthPicker').value; 
+      const defaultDate = activeMonth + "-01";
+      const dueDateInput = document.getElementById('fieldDueDate');
+      if (dueDateInput && !dueDateInput.value) {
+        dueDateInput.value = defaultDate;
+      }
+    }
+
     function calculateChronicValidity(rxDateStr) {
       if (!rxDateStr) return { status: 'unknown', text: 'غير محدد', badgeClass: 'bg-slate-100 text-slate-500' };
       const rxDate = new Date(rxDateStr);
@@ -470,7 +490,6 @@
       const activeMonthText = monthSelectEl.options[monthSelectEl.selectedIndex].text;
       document.getElementById('currentMonthLabel').innerText = activeMonthText;
 
-      // فلترة البيانات بناءً على الشهر المختار فقط
       const monthPatients = masterData.filter(p => p.month === activeMonth);
 
       refreshKPIs(monthPatients);
@@ -589,6 +608,18 @@
       document.getElementById('showingTotalSum').innerText = sumValue.toLocaleString();
     }
 
+    // حساب الشهر المستهدف بعد 3 أشهر تلقائياً
+    function getFutureMonthString(currentMonthStr, addMonths = 3) {
+      const parts = currentMonthStr.split('-');
+      let year = parseInt(parts[0], 10);
+      let month = parseInt(parts[1], 10) - 1; // 0-indexed month
+
+      const d = new Date(year, month + addMonths, 1);
+      const resYear = d.getFullYear();
+      const resMonth = String(d.getMonth() + 1).padStart(2, '0');
+      return `${resYear}-${resMonth}`;
+    }
+
     function handleFormSubmit() {
       const name = (document.getElementById('fieldName').value || '').trim();
       const phone = (document.getElementById('fieldPhone').value || '').trim();
@@ -611,8 +642,10 @@
       const desire = document.getElementById('fieldDesire').value || 'salary_27';
       const notes = (document.getElementById('fieldNotes').value || '').trim();
 
+      const isAutoRefillChecked = document.getElementById('autoGenerateRefill').checked;
+
       const patientData = {
-        month: activeMonth, // حفظ الشهر التابع له المريض بشكل دقيق
+        month: activeMonth,
         serviceType,
         name,
         nationalId,
@@ -633,8 +666,29 @@
           .then(() => { resetFormToNew(); loadDataFromCloud(); alert('تم التحديث بنجاح!'); })
           .catch(err => alert('حدث خطأ أثناء التحديث.'));
       } else {
+        // حفظ المريض في الشهر الحالي
         fetch(FIREBASE_DB_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patientData) })
-          .then(() => { resetFormToNew(); loadDataFromCloud(); alert('تم الحفظ بنجاح لشهر المتابعة المحدد!'); })
+          .then(() => {
+            // إذا كان زر خيار "إعادة الصرف بعد 3 أشهر" مفعلاً
+            if (isAutoRefillChecked) {
+              const futureMonth = getFutureMonthString(activeMonth, 3);
+              const futureDueDate = dueDate ? getFutureMonthString(dueDate.substring(0, 7), 3) + dueDate.substring(7) : futureMonth + "-01";
+              
+              const futurePatientData = {
+                ...patientData,
+                month: futureMonth,
+                dueDate: futureDueDate,
+                contacted: 'no',
+                notes: notes ? notes + ' (تجديد تلقائي بعد 3 أشهر)' : 'تجديد تلقائي بعد 3 أشهر'
+              };
+
+              fetch(FIREBASE_DB_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(futurePatientData) });
+            }
+
+            resetFormToNew();
+            loadDataFromCloud();
+            alert(`تم حفظ المريض بنجاح ${isAutoRefillChecked ? 'وتم تفعيل تذكير إعادة الصرف التلقائي بعد 3 أشهر!' : ''}`);
+          })
           .catch(err => alert('حدث خطأ أثناء الحفظ.'));
       }
     }
@@ -676,7 +730,9 @@
       document.getElementById('fieldValue').value = '';
       document.getElementById('fieldMedications').value = '';
       document.getElementById('fieldPrescriptionDate').value = '';
-      document.getElementById('fieldDueDate').value = '';
+      
+      setDefaultDatesForSelectedMonth();
+
       document.getElementById('fieldContacted').value = 'no';
       document.getElementById('fieldDesire').value = 'salary_27';
       document.getElementById('fieldNotes').value = '';
@@ -687,7 +743,7 @@
       document.getElementById('formIconBadge').innerText = '➕';
       document.getElementById('formHeading').innerText = 'تسجيل مريض جديد لشهر المتابعة المحدد';
       document.getElementById('formModeBadge').innerText = 'وضع الإضافة السحابي';
-      document.getElementById('btnSaveText').innerText = 'حفظ المريض للشهر المختار';
+      document.getElementById('btnSaveText').innerText = 'حفظ المريض لشهر المختار';
       document.getElementById('btnCancelEdit').classList.add('hidden');
 
       updateFormValidityPreview();
@@ -754,9 +810,10 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       loadDataFromCloud();
+      setDefaultDatesForSelectedMonth();
 
-      // التبديل الفوري عند اختيار أي شهر آخر
       document.getElementById('monthPicker').addEventListener('change', () => {
+        setDefaultDatesForSelectedMonth();
         resetFormToNew();
         renderApp();
       });
@@ -772,7 +829,6 @@
       document.getElementById('fieldPrescriptionDate').addEventListener('change', updateFormValidityPreview);
       document.getElementById('btnExportExcel').addEventListener('click', exportToExcel);
 
-      // مزامنة سحابية تلقائية كل 5 ثواني
       setInterval(loadDataFromCloud, 5000);
     });
   </script>

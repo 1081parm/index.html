@@ -15,10 +15,14 @@
 
   <style>
     * { font-family: 'Tajawal', sans-serif; }
+    
+    /* Subtle custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Print styles */
     @media print {
       body { background: white !important; color: black !important; padding: 0 !important; }
       .no-print { display: none !important; }
@@ -42,32 +46,25 @@
             <h1 class="text-base sm:text-lg font-black tracking-tight text-white">صيدليات الدواء — فرع 1081</h1>
             <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40">ينبع الصناعية</span>
           </div>
-          <p class="text-[11px] text-slate-300">منظومة متابعة التأمين المزمن ووصفتي ريفيل | التجديد الصرف التلقائي بعد 3 أشهر</p>
+          <p class="text-[11px] text-slate-300">منظومة متابعة التأمين المزمن ووصفتي ريفيل | الصرف الدوري الذكي والمتابعة المستمرة (سحابي مباشر)</p>
         </div>
       </div>
 
       <!-- Controls: Month Picker & Quick Actions -->
       <div class="flex items-center gap-2 flex-wrap no-print">
         
-        <!-- Month Selector -->
-        <div class="flex items-center bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl gap-2">
-          <label for="monthPicker" class="text-xs text-amber-400 font-bold whitespace-nowrap">📅 شهر المتابعة:</label>
-          <select id="monthPicker" class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-lg border border-slate-600 focus:outline-none focus:border-amber-400">
-            <option value="2026-11">نوفمبر 2026</option>
-            <option value="2026-12">ديسمبر 2026</option>
-            <option value="2027-01">يناير 2027</option>
-            <option value="2027-02">فبراير 2027</option>
-            <option value="2027-03">مارس 2027</option>
-            <option value="2027-04">أبريل 2027</option>
-            <option value="2027-05">مايو 2027</option>
-            <option value="2027-06">يونيو 2027</option>
-            <option value="2027-07">يوليو 2027</option>
-            <option value="2027-08">أغسطس 2027</option>
-            <option value="2027-09">سبتمبر 2027</option>
-            <option value="2027-10">أكتوبر 2027</option>
-            <option value="2027-11">نوفمبر 2027</option>
-            <option value="2027-12">ديسمبر 2027</option>
+        <!-- Smart Month Navigator -->
+        <div class="flex items-center bg-slate-800 border border-slate-700 px-2 py-1 rounded-xl gap-1.5 shadow-inner">
+          <label for="monthPicker" class="text-xs text-amber-400 font-bold whitespace-nowrap hidden sm:inline">📅 شهر المتابعة:</label>
+          <button type="button" id="btnPrevMonth" onclick="shiftMonth(-1)" class="w-7 h-7 flex items-center justify-center bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg text-xs font-bold transition" title="الشهر السابق">
+            ▶
+          </button>
+          <select id="monthPicker" class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-lg border border-slate-600 focus:outline-none focus:border-amber-400 cursor-pointer">
+            <!-- Dynamically populated to be unlimited -->
           </select>
+          <button type="button" id="btnNextMonth" onclick="shiftMonth(1)" class="w-7 h-7 flex items-center justify-center bg-slate-900 hover:bg-slate-700 text-amber-400 rounded-lg text-xs font-bold transition" title="الشهر القادم">
+            ◀
+          </button>
         </div>
 
         <!-- Shift Pharmacist Badge -->
@@ -76,13 +73,13 @@
           <input type="text" id="shiftPharmacistInput" value="صيدلاني الفرع" placeholder="اسم صيدلي الشفت" class="bg-transparent text-white text-xs font-bold w-28 focus:outline-none border-b border-transparent focus:border-sky-400">
         </div>
 
-        <!-- Quick Data Tools -->
+        <!-- Quick Data Tools (Export / Cloud Sync) -->
         <button id="btnExportExcel" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-2 rounded-xl transition shadow flex items-center gap-1 active:scale-95" title="تصدير كملف إكسل متوافق مع اللغة العربية">
           <span>📊</span>
           <span>تصدير Excel</span>
         </button>
 
-        <button onclick="loadDataFromCloud()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3 py-2 rounded-xl transition shadow flex items-center gap-1 active:scale-95" title="تحديث وتزامن سحابي">
+        <button onclick="loadDataFromCloud()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3 py-2 rounded-xl transition shadow flex items-center gap-1 active:scale-95" title="تحديث وتزامن سحابي فوري">
           <span>🔄</span>
           <span>تحديث سحابي</span>
         </button>
@@ -95,14 +92,14 @@
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
     <!-- DASHBOARD KPI CARDS -->
-    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <section class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       
       <!-- Card 1: Total Patients -->
       <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
         <span class="text-xs font-bold text-slate-500">إجمالي الحالات</span>
         <div class="mt-2">
           <h3 id="statTotal" class="text-2xl font-black text-slate-900">0</h3>
-          <span class="text-[10px] text-slate-400 block mt-0.5">مريض للشهر المختار</span>
+          <span class="text-[10px] text-slate-400 block mt-0.5">مريض مستحق للشهر</span>
         </div>
       </div>
 
@@ -138,24 +135,6 @@
         </div>
       </div>
 
-      <!-- Card 5: Day 27 Salary Reserve -->
-      <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl p-3.5 shadow-sm flex flex-col justify-between">
-        <span class="text-xs font-extrabold text-emerald-100">💰 حجز راتب 27</span>
-        <div class="mt-2">
-          <h3 id="statSalaryCount" class="text-2xl font-black text-white">0</h3>
-          <span id="statSalaryVal" class="text-[10px] font-extrabold text-emerald-100 block mt-0.5">0 ر.س مضمونة</span>
-        </div>
-      </div>
-
-      <!-- Card 6: Pre-Vacation Early Refill -->
-      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-3.5 border border-amber-200 shadow-sm flex flex-col justify-between">
-        <span class="text-xs font-extrabold text-amber-800">✈️ صرف إجازة مبكر</span>
-        <div class="mt-2">
-          <h3 id="statEarlyCount" class="text-2xl font-black text-amber-800">0</h3>
-          <span id="statEarlyVal" class="text-[10px] font-bold text-amber-700 block mt-0.5">0 ر.س استباق</span>
-        </div>
-      </div>
-
     </section>
 
     <!-- ==================== INTERACTIVE FORM (ADD & EDIT) ==================== -->
@@ -165,9 +144,9 @@
       <div class="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white px-5 py-3.5 flex justify-between items-center border-b-2 border-amber-400">
         <div class="flex items-center gap-2">
           <span id="formIconBadge" class="text-amber-400 text-base font-bold">➕</span>
-          <h2 id="formHeading" class="text-sm font-extrabold">تسجيل مريض جديد لشهر المتابعة المحدد</h2>
+          <h2 id="formHeading" class="text-sm font-extrabold">تسجيل مريض جديد للمتابعة وإعادة الصرف (سحابي)</h2>
         </div>
-        <span id="formModeBadge" class="text-[10px] bg-sky-500/20 text-sky-300 border border-sky-400/40 px-2 py-0.5 rounded-full font-bold">وضع الإضافة السحابي</span>
+        <span id="formModeBadge" class="text-[10px] bg-sky-500/20 text-sky-300 border border-sky-400/40 px-2 py-0.5 rounded-full font-bold">وضع الإضافة</span>
       </div>
 
       <!-- Form Inputs Container -->
@@ -223,8 +202,8 @@
           <input type="text" id="fieldMedications" placeholder="مثال: مونجارو 5mg + جلوكوفاج 1000 + كونسيلكور 5 + مكمل رونزاك أوميجا" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none bg-slate-50 focus:bg-white transition">
         </div>
 
-        <!-- Row 4: Dates & 9-Month Chronic Insurance Validity Calculator -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+        <!-- Row 4: Dates & Cycle Configuration -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
           <div>
             <label for="fieldPrescriptionDate" class="block font-bold text-slate-700 mb-1">
               <span>تاريخ كتابة الوصفة الأصلية</span>
@@ -236,21 +215,23 @@
             <label for="fieldDueDate" class="block font-bold text-slate-700 mb-1">تاريخ استحقاق الصرف القادم</label>
             <input type="date" id="fieldDueDate" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white font-bold text-sky-900">
           </div>
+          <div>
+            <label for="fieldRefillInterval" class="block font-bold text-slate-700 mb-1">
+              <span>دورة تكرار إعادة الصرف</span>
+              <span class="text-sky-600 font-bold text-[10px]">(لظهوره التلقائي)</span>
+            </label>
+            <select id="fieldRefillInterval" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white font-bold text-slate-800">
+              <option value="1">كل شهر (شهرياً - 30 يوماً)</option>
+              <option value="2">كل شهرين (60 يوماً)</option>
+              <option value="3" selected>كل 3 أشهر (ربع سنوي - 90 يوماً)</option>
+              <option value="6">كل 6 أشهر (نصف سنوي)</option>
+              <option value="0">صرف لمرة واحدة فقط (بدون تكرار)</option>
+            </select>
+          </div>
           <div class="flex flex-col justify-center">
             <span class="font-bold text-slate-600 block mb-1">حالة صلاحية التأمين (9 أشهر):</span>
             <div id="fieldValidityPreview" class="text-[11px] font-bold p-1.5 rounded-lg text-center bg-slate-200 text-slate-600">
               أدخلي تاريخ الوصفة للحساب التلقائي
-            </div>
-          </div>
-        </div>
-
-        <!-- Auto Refill Option -->
-        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between gap-2 text-xs">
-          <div class="flex items-center gap-2">
-            <input type="checkbox" id="autoGenerateRefill" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
-            <div>
-              <span class="font-bold text-amber-900 block">إعادة الصرف التلقائي (بعد 3 أشهر) 🔄</span>
-              <span class="text-[10px] text-amber-700">إضافة نسخة تلقائية للمريض في جدول الشهر القادم بعد 3 أشهر من تاريخ الصرف.</span>
             </div>
           </div>
         </div>
@@ -267,9 +248,7 @@
           <div>
             <label for="fieldDesire" class="block font-bold text-slate-700 mb-1">رغبة وإجراء الصرف</label>
             <select id="fieldDesire" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white font-extrabold text-slate-800">
-              <option value="salary_27" selected>💰 حجز ليوم الراتب (27)</option>
-              <option value="pre_vacation">✈️ صرف إجازة مبكر</option>
-              <option value="yes">✅ نعم يرغب بالصرف الفوري</option>
+              <option value="yes" selected>✅ نعم يرغب بالصرف الفوري</option>
               <option value="postponed">⏳ مؤجل لوقت آخر</option>
               <option value="no">❌ لا يرغب / اعتذر</option>
             </select>
@@ -279,7 +258,7 @@
         <!-- Row 6: Notes Field -->
         <div class="text-xs">
           <label for="fieldNotes" class="block font-bold text-slate-700 mb-1">ملاحظات العميل والتوصيل والمكملات المقترحة</label>
-          <textarea id="fieldNotes" rows="2" placeholder="اكتبي هنا أي تفاصيل: عنوان التوصيل، موعد السفر، المكمل المقترح، أو وقت الاتصال المفضل..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none bg-slate-50 focus:bg-white transition resize-none"></textarea>
+          <textarea id="fieldNotes" rows="2" placeholder="اكتبي هنا أي تفاصيل: عنوان التوصيل، المكمل المقترح (رونزاك 1+1)، أو وقت الاتصال المفضل..." class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none bg-slate-50 focus:bg-white transition resize-none"></textarea>
         </div>
 
         <!-- Form Action Buttons -->
@@ -288,7 +267,7 @@
             إلغاء التعديل
           </button>
           <button type="button" id="btnSaveRecord" onclick="handleFormSubmit()" class="px-6 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-1.5">
-            <span id="btnSaveText">حفظ المريض للشهر المختار</span>
+            <span id="btnSaveText">حفظ المريض في السجل السحابي</span>
           </button>
         </div>
 
@@ -305,13 +284,13 @@
           <!-- Search Input -->
           <div class="relative flex-1">
             <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-            <input type="text" id="filterSearch" placeholder="بحث فوري في هذا الشهر: اسم المريض، الهوية، الجوال، الصنف..." class="w-full pr-10 pl-4 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+            <input type="text" id="filterSearch" placeholder="بحث فوري: اسم المريض، الهوية، الجوال، الصنف (مونجارو...)، الملاحظات..." class="w-full pr-10 pl-4 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
           </div>
 
           <!-- Dropdowns -->
           <div class="flex flex-wrap items-center gap-2 text-xs">
             <select id="filterType" class="bg-white border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
-              <option value="ALL">جميع الخدمات</option>
+              <option value="ALL">جميع الخدمات (تأمين + وصفتي)</option>
               <option value="insurance">تأمين مزمن (Chronic)</option>
               <option value="wasfaty">وصفتي ريفيل (Wasfaty)</option>
             </select>
@@ -324,18 +303,23 @@
 
             <select id="filterDesire" class="bg-white border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
               <option value="ALL">إجراء الصرف (الكل)</option>
-              <option value="salary_27">💰 حجز ليوم الراتب</option>
-              <option value="pre_vacation">✈️ صرف إجازة مبكر</option>
               <option value="yes">✅ صرف فوري</option>
               <option value="postponed">⏳ مؤجل</option>
               <option value="no">❌ لا يرغب</option>
+            </select>
+
+            <select id="filterValidity" class="bg-white border border-slate-300 rounded-xl px-2.5 py-2 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
+              <option value="ALL">صلاحية التأمين (الكل)</option>
+              <option value="valid">صالحة</option>
+              <option value="expiring">قاربت على الانتهاء (&le; 30 يوماً)</option>
+              <option value="expired">منتهية الصلاحية</option>
             </select>
           </div>
 
         </div>
 
         <div class="flex flex-wrap justify-between items-center text-[11px] text-slate-500 pt-1">
-          <span>يتم عرض: <strong id="showingCount" class="text-slate-800 font-bold">0</strong> مريض من إجمالي <strong id="totalCountInMonth" class="text-slate-800 font-bold">0</strong> لشهر <span id="currentMonthLabel" class="text-amber-600 font-extrabold">نوفمبر 2026</span></span>
+          <span>يتم عرض: <strong id="showingCount" class="text-slate-800 font-bold">0</strong> مريض من إجمالي <strong id="totalCountInMonth" class="text-slate-800 font-bold">0</strong> مستحقين لهذا الشهر</span>
           <span class="text-teal-700 font-bold">مجموع مبالغ الحالات المعروضة: <strong id="showingTotalSum">0</strong> ر.س</span>
         </div>
       </div>
@@ -350,7 +334,7 @@
               <th class="py-3 px-3">المريض</th>
               <th class="py-3 px-3 w-36">الجوال والتواصل</th>
               <th class="py-3 px-2.5 text-center w-24">تاريخ الوصفة</th>
-              <th class="py-3 px-2.5 text-center w-24">الاستحقاق</th>
+              <th class="py-3 px-2.5 text-center w-24">الاستحقاق بهذا الشهر</th>
               <th class="py-3 px-2.5 text-center w-36">صلاحية الـ 9 أشهر</th>
               <th class="py-3 px-3 min-w-[150px]">الأصناف المطلوبة</th>
               <th class="py-3 px-2.5 text-center w-24">القيمة</th>
@@ -368,9 +352,9 @@
 
       <!-- Empty State Indicator -->
       <div id="tableEmptyState" class="hidden py-14 text-center space-y-2">
-        <div class="text-3xl text-slate-300">📅</div>
-        <h3 class="text-xs font-bold text-slate-700">لا توجد حالات مسجلة في هذا الشهر حتى الآن</h3>
-        <p class="text-[11px] text-slate-400">اختر الشهر المناسب من الأعلى، ثم أضف الحالات الخاصة به وسيحفظها النظام بشكل مستقل</p>
+        <div class="text-3xl text-slate-300">📋</div>
+        <h3 class="text-xs font-bold text-slate-700">لا توجد حالات مسجلة أو مستحقة لإعادة الصرف في هذا الشهر</h3>
+        <p class="text-[11px] text-slate-400">أي مريض له دورة إعادة صرف (مثلاً كل 3 أشهر) سيظهر تلقائياً في شهور استحقاقه</p>
       </div>
 
     </section>
@@ -380,19 +364,143 @@
   <!-- ==================== FOOTER ==================== -->
   <footer class="bg-white border-t border-slate-200 py-3 text-xs text-slate-500 no-print">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <div>صيدليات الدواء — فرع 1081 ينبع الصناعية | النظام السحابي متعدد الشهور</div>
+      <div>صيدليات الدواء — فرع 1081 ينبع الصناعية | النظام التشغيلي لإعادة الصرف الدوري والمتابعة المستمرة</div>
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-bold text-slate-700">متصل بقاعدة البيانات السحابية (Firebase Cloud Sync)</span>
+        <span class="font-bold text-slate-700">متصل بقاعدة البيانات السحابية Firebase (مزامنة فورية بين جميع الأجهزة)</span>
       </div>
     </div>
   </footer>
 
-  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <!-- ==================== PURE JAVASCRIPT LOGIC (FIREBASE SYNC) ==================== -->
   <script>
+    // Firebase Realtime Database URL
     const FIREBASE_DB_URL = "https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients.json";
+
+    // Data Store in Memory
     let masterData = [];
 
+    // Arabic Month Names
+    const AR_MONTHS = [
+      "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+      "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+    ];
+
+    // Helper: Formats YYYY-MM into "نوفمبر 2026"
+    function formatYearMonth(ymStr) {
+      if (!ymStr) return '';
+      const parts = ymStr.split('-').map(Number);
+      const y = parts[0];
+      const m = parts[1];
+      return AR_MONTHS[m - 1] + ' ' + y;
+    }
+
+    // Helper: Calculate diff in months between two "YYYY-MM" strings
+    function getMonthDifference(fromYM, toYM) {
+      const p1 = fromYM.split('-').map(Number);
+      const p2 = toYM.split('-').map(Number);
+      return (p2[0] - p1[0]) * 12 + (p2[1] - p1[1]);
+    }
+
+    // Helper: Get cycle specific status for an active month
+    function getCycleStatus(p, activeYM) {
+      if (p.cycleData && p.cycleData[activeYM]) {
+        return p.cycleData[activeYM];
+      }
+      const originYM = p.month || (p.dueDate ? p.dueDate.substring(0, 7) : '2026-11');
+      if (activeYM === originYM) {
+        return {
+          contacted: p.contacted || 'no',
+          desire: p.desire || 'yes'
+        };
+      }
+      return {
+        contacted: 'no',
+        desire: p.desire || 'yes'
+      };
+    }
+
+    // Dynamic Unlimited Months Generator for the Month Selector
+    function populateMonthPicker(targetSelectedYM) {
+      const picker = document.getElementById('monthPicker');
+      let curVal = targetSelectedYM || picker.value || '2026-11';
+      
+      const allMonthsSet = new Set();
+      allMonthsSet.add('2026-11');
+      allMonthsSet.add(curVal);
+      
+      masterData.forEach(p => {
+        if (p.month) allMonthsSet.add(p.month);
+        if (p.dueDate) allMonthsSet.add(p.dueDate.substring(0, 7));
+      });
+
+      const today = new Date();
+      const baseYear = today.getFullYear();
+      const baseMonth = today.getMonth() + 1;
+
+      for (let i = -12; i <= 60; i++) {
+        const d = new Date(baseYear, baseMonth - 1 + i, 1);
+        const yStr = d.getFullYear();
+        const mStr = String(d.getMonth() + 1).padStart(2, '0');
+        allMonthsSet.add(yStr + '-' + mStr);
+      }
+
+      const sortedMonths = Array.from(allMonthsSet).sort();
+
+      picker.innerHTML = '';
+      sortedMonths.forEach(ym => {
+        const opt = document.createElement('option');
+        opt.value = ym;
+        opt.innerText = formatYearMonth(ym);
+        if (ym === curVal) opt.selected = true;
+        picker.appendChild(opt);
+      });
+    }
+
+    // Month shifter buttons
+    function shiftMonth(offset) {
+      const picker = document.getElementById('monthPicker');
+      const curIndex = picker.selectedIndex;
+      const newIndex = curIndex + offset;
+      if (newIndex >= 0 && newIndex < picker.options.length) {
+        picker.selectedIndex = newIndex;
+        resetFormToNew();
+        renderApp();
+      }
+    }
+
+    // Check if patient belongs to or recurs in target month
+    function isPatientInMonth(p, targetYM) {
+      const originYM = p.month || (p.dueDate ? p.dueDate.substring(0, 7) : '2026-11');
+      if (originYM === targetYM) return true;
+
+      const interval = parseInt(p.refillInterval);
+      if (interval && interval > 0) {
+        const diff = getMonthDifference(originYM, targetYM);
+        if (diff > 0 && diff % interval === 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Compute expected due date in the current viewed month
+    function getAdjustedDueDateForMonth(p, targetYM) {
+      if (!p.dueDate) return '—';
+      const parts = p.dueDate.split('-');
+      const originDay = parts[2] || '27';
+      const tParts = targetYM.split('-').map(Number);
+      const tY = tParts[0];
+      const tM = tParts[1];
+      
+      const daysInTargetMonth = new Date(tY, tM, 0).getDate();
+      const safeDay = Math.min(parseInt(originDay, 10), daysInTargetMonth);
+      const safeDayStr = String(safeDay).padStart(2, '0');
+      
+      return targetYM + '-' + safeDayStr;
+    }
+
+    // Load Data from Firebase Cloud
     function loadDataFromCloud() {
       fetch(FIREBASE_DB_URL)
         .then(res => res.json())
@@ -402,41 +510,61 @@
               id: key,
               ...data[key]
             }));
+            masterData.forEach(item => {
+              if (item.refillInterval === undefined) item.refillInterval = 3;
+              if (!item.cycleData) item.cycleData = {};
+            });
           } else {
             masterData = [];
           }
+          const currentYM = document.getElementById('monthPicker')?.value || '2026-11';
+          populateMonthPicker(currentYM);
           renderApp();
         })
-        .catch(err => console.error("خطأ في جلب البيانات:", err));
+        .catch(err => {
+          console.error("خطأ في جلب البيانات من السحابة:", err);
+        });
     }
 
-    function setDefaultDatesForSelectedMonth() {
-      const activeMonth = document.getElementById('monthPicker').value; 
-      const defaultDate = activeMonth + "-01";
-      const dueDateInput = document.getElementById('fieldDueDate');
-      if (dueDateInput && !dueDateInput.value) {
-        dueDateInput.value = defaultDate;
-      }
-    }
-
+    // Helper: 9-Month Chronic Insurance Validity Calculator
     function calculateChronicValidity(rxDateStr) {
-      if (!rxDateStr) return { status: 'unknown', text: 'غير محدد', badgeClass: 'bg-slate-100 text-slate-500' };
+      if (!rxDateStr) {
+        return { status: 'unknown', text: 'غير محدد', badgeClass: 'bg-slate-100 text-slate-500' };
+      }
       const rxDate = new Date(rxDateStr);
-      if (isNaN(rxDate.getTime())) return { status: 'unknown', text: 'تاريخ غير صالح', badgeClass: 'bg-slate-100 text-slate-500' };
+      if (isNaN(rxDate.getTime())) {
+        return { status: 'unknown', text: 'تاريخ غير صالح', badgeClass: 'bg-slate-100 text-slate-500' };
+      }
 
       const expiryDate = new Date(rxDate);
       expiryDate.setMonth(expiryDate.getMonth() + 9);
+
       const today = new Date();
       const diffTime = expiryDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
       if (diffDays <= 0) {
-        return { status: 'expired', text: `منتهية (${Math.abs(diffDays)} يوم)`, badgeClass: 'bg-rose-100 text-rose-800 border border-rose-300 font-extrabold' };
+        return {
+          status: 'expired',
+          daysLeft: diffDays,
+          text: 'منتهية (انتهت منذ ' + Math.abs(diffDays) + ' يوم)',
+          badgeClass: 'bg-rose-100 text-rose-800 border border-rose-300 font-extrabold'
+        };
       } else if (diffDays <= 30) {
-        return { status: 'expiring', text: `أوشكت (${diffDays} يوم)`, badgeClass: 'bg-amber-100 text-amber-900 border border-amber-300 font-extrabold' };
+        return {
+          status: 'expiring',
+          daysLeft: diffDays,
+          text: 'أوشكت (متبقي ' + diffDays + ' يوم)',
+          badgeClass: 'bg-amber-100 text-amber-900 border border-amber-300 font-extrabold'
+        };
       } else {
         const months = Math.floor(diffDays / 30);
-        return { status: 'valid', text: `صالحة (${months} شهر)`, badgeClass: 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold' };
+        return {
+          status: 'valid',
+          daysLeft: diffDays,
+          text: 'صالحة (' + months + ' شهر / ' + diffDays + ' يوم)',
+          badgeClass: 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold'
+        };
       }
     }
 
@@ -449,57 +577,50 @@
         return;
       }
       const val = calculateChronicValidity(rxDate);
-      previewEl.className = `text-[11px] p-1.5 rounded-lg text-center ${val.badgeClass}`;
+      previewEl.className = 'text-[11px] p-1.5 rounded-lg text-center ' + val.badgeClass;
       previewEl.innerText = val.text;
     }
 
-    function refreshKPIs(monthList) {
+    function refreshKPIs(monthList, activeMonth) {
       const total = monthList.length;
       document.getElementById('statTotal').innerText = total;
 
-      const contacted = monthList.filter(p => p.contacted === 'yes');
+      const contacted = monthList.filter(p => {
+        const st = getCycleStatus(p, activeMonth);
+        return st.contacted === 'yes';
+      });
+
       const contactPct = total > 0 ? Math.round((contacted.length / total) * 100) : 0;
       document.getElementById('statContactRate').innerText = contactPct + '%';
-      document.getElementById('statContactCount').innerText = `${contacted.length} / ${total}`;
+      document.getElementById('statContactCount').innerText = contacted.length + ' / ' + total;
       document.getElementById('statContactBar').style.width = contactPct + '%';
 
       const insList = monthList.filter(p => p.serviceType === 'insurance');
       const insVal = insList.reduce((sum, p) => sum + (parseFloat(p.value) || 0), 0);
       document.getElementById('statInsuranceVal').innerText = insVal.toLocaleString() + ' ر.س';
-      document.getElementById('statInsuranceCount').innerText = `${insList.length} وصفة`;
+      document.getElementById('statInsuranceCount').innerText = insList.length + ' وصفة';
 
       const wasfatyList = monthList.filter(p => p.serviceType === 'wasfaty');
       const wasfatyVal = wasfatyList.reduce((sum, p) => sum + (parseFloat(p.value) || 0), 0);
       document.getElementById('statWasfatyVal').innerText = wasfatyVal.toLocaleString() + ' ر.س';
-      document.getElementById('statWasfatyCount').innerText = `${wasfatyList.length} وصفة`;
-
-      const salaryList = monthList.filter(p => p.desire === 'salary_27');
-      const salaryVal = salaryList.reduce((sum, p) => sum + (parseFloat(p.value) || 0), 0);
-      document.getElementById('statSalaryCount').innerText = salaryList.length;
-      document.getElementById('statSalaryVal').innerText = salaryVal.toLocaleString() + ' ر.س مضمونة';
-
-      const earlyList = monthList.filter(p => p.desire === 'pre_vacation');
-      const earlyVal = earlyList.reduce((sum, p) => sum + (parseFloat(p.value) || 0), 0);
-      document.getElementById('statEarlyCount').innerText = earlyList.length;
-      document.getElementById('statEarlyVal').innerText = earlyVal.toLocaleString() + ' ر.س استباق';
+      document.getElementById('statWasfatyCount').innerText = wasfatyList.length + ' وصفة';
     }
 
     function renderApp() {
       const activeMonth = document.getElementById('monthPicker').value;
-      const monthSelectEl = document.getElementById('monthPicker');
-      const activeMonthText = monthSelectEl.options[monthSelectEl.selectedIndex].text;
-      document.getElementById('currentMonthLabel').innerText = activeMonthText;
+      const monthPatients = masterData.filter(p => isPatientInMonth(p, activeMonth));
 
-      const monthPatients = masterData.filter(p => p.month === activeMonth);
-
-      refreshKPIs(monthPatients);
+      refreshKPIs(monthPatients, activeMonth);
 
       const search = (document.getElementById('filterSearch').value || '').trim().toLowerCase();
       const typeF = document.getElementById('filterType').value;
       const contactF = document.getElementById('filterContact').value;
       const desireF = document.getElementById('filterDesire').value;
+      const validityF = document.getElementById('filterValidity').value;
 
       const filtered = monthPatients.filter(p => {
+        const cycleSt = getCycleStatus(p, activeMonth);
+
         const matchSearch = !search ||
           (p.name && p.name.toLowerCase().includes(search)) ||
           (p.nationalId && p.nationalId.includes(search)) ||
@@ -508,10 +629,16 @@
           (p.notes && p.notes.toLowerCase().includes(search));
 
         const matchType = typeF === 'ALL' || p.serviceType === typeF;
-        const matchContact = contactF === 'ALL' || p.contacted === contactF;
-        const matchDesire = desireF === 'ALL' || p.desire === desireF;
+        const matchContact = contactF === 'ALL' || cycleSt.contacted === contactF;
+        const matchDesire = desireF === 'ALL' || cycleSt.desire === desireF;
 
-        return matchSearch && matchType && matchContact && matchDesire;
+        let matchValidity = true;
+        if (validityF !== 'ALL') {
+          const val = calculateChronicValidity(p.prescriptionDate);
+          matchValidity = (val.status === validityF);
+        }
+
+        return matchSearch && matchType && matchContact && matchDesire && matchValidity;
       });
 
       const tbody = document.getElementById('tableBody');
@@ -533,42 +660,52 @@
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
 
-          const serviceBadge = p.serviceType === 'insurance'
+          const cycleSt = getCycleStatus(p, activeMonth);
+          const originYM = p.month || (p.dueDate ? p.dueDate.substring(0, 7) : '2026-11');
+          const isRecurringCycle = originYM !== activeMonth;
+
+          let serviceBadge = p.serviceType === 'insurance'
             ? '<span class="bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-md font-bold text-[10px]">تأمين مزمن</span>'
             : '<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-md font-bold text-[10px]">وصفتي ريفيل</span>';
 
+          if (isRecurringCycle) {
+            serviceBadge += '<span class="mt-1 block text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1 rounded text-center font-bold">🔄 إعادة صرف دورية</span>';
+          }
+
           let desireBadge = '';
-          if (p.desire === 'salary_27') {
-            desireBadge = '<span class="bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold px-2 py-1 rounded-md text-[10px] block leading-tight">💰 حجز راتب 27</span>';
-          } else if (p.desire === 'pre_vacation') {
-            desireBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 font-extrabold px-2 py-1 rounded-md text-[10px] block leading-tight">✈️ صرف إجازة مبكر</span>';
-          } else if (p.desire === 'yes') {
+          if (cycleSt.desire === 'yes') {
             desireBadge = '<span class="bg-teal-100 text-teal-800 border border-teal-300 font-bold px-2 py-1 rounded-md text-[10px] block leading-tight">✅ صرف فوري</span>';
-          } else if (p.desire === 'postponed') {
+          } else if (cycleSt.desire === 'postponed') {
             desireBadge = '<span class="bg-slate-100 text-slate-700 font-medium px-2 py-1 rounded-md text-[10px] block leading-tight">⏳ مؤجل</span>';
           } else {
             desireBadge = '<span class="bg-rose-100 text-rose-800 font-bold px-2 py-1 rounded-md text-[10px] block leading-tight">❌ لا يرغب</span>';
           }
 
-          const contactBtn = p.contacted === 'yes'
-            ? `<button onclick="toggleContact('${p.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-2 py-1 rounded-lg text-[10px] transition shadow-xs flex items-center gap-1 mx-auto"><span>✓ تم</span></button>`
-            : `<button onclick="toggleContact('${p.id}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-2 py-1 rounded-lg text-[10px] transition flex items-center gap-1 mx-auto"><span>⏳ معلق</span></button>`;
+          const contactBtn = cycleSt.contacted === 'yes'
+            ? `<button onclick="toggleContact('${p.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-2 py-1 rounded-lg text-[10px] transition shadow-xs flex items-center gap-1 mx-auto" title="اضغطي للتبديل">
+                 <span>✓ تم</span>
+               </button>`
+            : `<button onclick="toggleContact('${p.id}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-2 py-1 rounded-lg text-[10px] transition flex items-center gap-1 mx-auto" title="اضغطي للتبديل">
+                 <span>⏳ معلق</span>
+               </button>`;
 
           let validityBadge = '';
           if (p.serviceType === 'insurance') {
             const val = calculateChronicValidity(p.prescriptionDate);
-            validityBadge = `<span class="px-2 py-0.5 rounded text-[10px] inline-block ${val.badgeClass}">${val.text}</span>`;
+            validityBadge = '<span class="px-2 py-0.5 rounded text-[10px] inline-block ' + val.badgeClass + '" title="الصلاحية 9 أشهر من تاريخ الوصفة">' + val.text + '</span>';
           } else {
-            validityBadge = `<span class="text-slate-400 text-[10px]">خاص بالتأمين</span>`;
+            validityBadge = '<span class="text-slate-400 text-[10px]">خاص بالتأمين</span>';
           }
+
+          const activeDueDate = getAdjustedDueDateForMonth(p, activeMonth);
 
           let cleanPhone = (p.phone || '').replace(/\D/g, '');
           if (cleanPhone.startsWith('05')) cleanPhone = '966' + cleanPhone.substring(1);
           
           const rxTypeTitle = p.serviceType === 'insurance' ? 'أدويتكم التأمينية المزمنة' : 'وصفتكم الطبية عبر وصفتي';
-          const waMsg = encodeURIComponent(
-            `السلام عليكم ورحمة الله وبركاته،\nأهلاً بك أستاذ/ة ${p.name} 🌸\nمعك صيدليات الدواء — فرع 1081 (ينبع الصناعية).\n\nنود إفادتك بحلول موعد إعادة صرف ${rxTypeTitle} والمتضمنة:\n(${p.medications})\n\nهل ترغب بتأكيد تجهيزها لشهر (${activeMonthText}) مع التوصيل لمنزلك؟`
-          );
+          const monthArabicName = formatYearMonth(activeMonth);
+          const rawMsg = "السلام عليكم ورحمة الله وبركاته،\nأهلاً بك أستاذ/ة " + p.name + " 🌸\nمعك صيدليات الدواء — فرع 1081 (ينبع الصناعية).\n\nنود إفادتك بحلول موعد إعادة صرف " + rxTypeTitle + " لشهر " + monthArabicName + " والمتضمنة:\n(" + p.medications + ")\n\nتاريخ استحقاق الصرف: " + activeDueDate + "\n\nهل ترغب بتأكيد تجهيزها للصرف مع خدمة التوصيل لمنزلك؟\nيسعدنا تأكيد رغبتك لخدمتك فوراً 🩺";
+          const waMsg = encodeURIComponent(rawMsg);
 
           tr.innerHTML = `
             <td class="py-3 px-2 text-center font-bold text-slate-400">${index + 1}</td>
@@ -580,27 +717,44 @@
             <td class="py-3 px-2.5">
               <div class="font-mono text-slate-800 font-bold text-[11px] mb-1" dir="ltr">${escapeHtml(p.phone)}</div>
               <div class="flex items-center gap-1.5">
-                <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold transition"><span>💬</span><span>واتساب</span></a>
-                <a href="tel:${escapeHtml(p.phone)}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold transition"><span>📞</span><span>اتصال</span></a>
+                <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold transition" title="فتح واتساب برسالة مجهزة">
+                  <span>💬</span><span>واتساب</span>
+                </a>
+                <a href="tel:${escapeHtml(p.phone)}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold transition" title="اتصال مباشر">
+                  <span>📞</span><span>اتصال</span>
+                </a>
               </div>
             </td>
             <td class="py-3 px-2 text-center font-mono text-[11px] text-slate-600">${escapeHtml(p.prescriptionDate || '—')}</td>
-            <td class="py-3 px-2 text-center font-mono text-[11px] font-bold text-sky-900">${escapeHtml(p.dueDate || '—')}</td>
+            <td class="py-3 px-2 text-center font-mono text-[11px] font-bold text-sky-900">${activeDueDate}</td>
             <td class="py-3 px-2 text-center">${validityBadge}</td>
             <td class="py-3 px-3 font-medium text-slate-800">${escapeHtml(p.medications)}</td>
             <td class="py-3 px-2 text-center font-bold text-slate-900">${(parseFloat(p.value) || 0).toLocaleString()} ر.س</td>
             <td class="py-3 px-2 text-center">${contactBtn}</td>
             <td class="py-3 px-2 text-center">${desireBadge}</td>
             <td class="py-3 px-3">
-              ${p.notes ? `<div class="bg-amber-50/90 border border-amber-200/90 p-2 rounded-lg text-[11px] text-amber-900 leading-snug">${escapeHtml(p.notes)}</div>` : '<span class="text-slate-400 italic text-[10px]">لا توجد ملاحظات</span>'}
+              ${p.notes ? `
+                <div class="bg-amber-50/90 border border-amber-200/90 p-2 rounded-lg text-[11px] text-amber-900 leading-snug">
+                  ${escapeHtml(p.notes)}
+                </div>` : '<span class="text-slate-400 italic text-[10px]">لا توجد ملاحظات</span>'
+              }
             </td>
             <td class="py-3 px-2 text-center no-print">
-              <div class="flex items-center justify-center gap-1">
-                <button onclick="startEdit('${p.id}')" title="تعديل" class="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition font-bold text-sm">✏️</button>
-                <button onclick="deleteRecord('${p.id}')" title="حذف" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition font-bold text-sm">🗑️</button>
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="startEdit('${p.id}')" title="تعديل بيانات المريض" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition border border-transparent hover:border-sky-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button onclick="deleteRecord('${p.id}')" title="حذف السجل" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition border border-transparent hover:border-rose-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
             </td>
           `;
+
           tbody.appendChild(tr);
         });
       }
@@ -608,26 +762,27 @@
       document.getElementById('showingTotalSum').innerText = sumValue.toLocaleString();
     }
 
-    // حساب الشهر المستهدف بعد 3 أشهر تلقائياً
-    function getFutureMonthString(currentMonthStr, addMonths = 3) {
-      const parts = currentMonthStr.split('-');
-      let year = parseInt(parts[0], 10);
-      let month = parseInt(parts[1], 10) - 1; // 0-indexed month
-
-      const d = new Date(year, month + addMonths, 1);
-      const resYear = d.getFullYear();
-      const resMonth = String(d.getMonth() + 1).padStart(2, '0');
-      return `${resYear}-${resMonth}`;
-    }
-
+    // Form Handling: Save or Update Record to Cloud
     function handleFormSubmit() {
       const name = (document.getElementById('fieldName').value || '').trim();
       const phone = (document.getElementById('fieldPhone').value || '').trim();
       const medications = (document.getElementById('fieldMedications').value || '').trim();
 
-      if (!name) { alert('يرجى إدخال اسم المريض.'); document.getElementById('fieldName').focus(); return; }
-      if (!phone) { alert('يرجى إدخال رقم الجوال.'); document.getElementById('fieldPhone').focus(); return; }
-      if (!medications) { alert('يرجى تحديد الأصناف الدوائية.'); document.getElementById('fieldMedications').focus(); return; }
+      if (!name) {
+        alert('يرجى إدخال اسم المريض / العميل.');
+        document.getElementById('fieldName').focus();
+        return;
+      }
+      if (!phone) {
+        alert('يرجى إدخال رقم جوال المريض.');
+        document.getElementById('fieldPhone').focus();
+        return;
+      }
+      if (!medications) {
+        alert('يرجى تحديد الأصناف الدوائية المطلوبة.');
+        document.getElementById('fieldMedications').focus();
+        return;
+      }
 
       const activeMonth = document.getElementById('monthPicker').value;
       const pharmacistName = (document.getElementById('shiftPharmacistInput').value || 'صيدلاني الفرع').trim();
@@ -638,64 +793,91 @@
       const value = parseFloat(document.getElementById('fieldValue').value) || 0;
       const prescriptionDate = document.getElementById('fieldPrescriptionDate').value || '';
       const dueDate = document.getElementById('fieldDueDate').value || '';
+      const refillInterval = parseInt(document.getElementById('fieldRefillInterval').value, 10) || 3;
       const contacted = document.getElementById('fieldContacted').value || 'no';
-      const desire = document.getElementById('fieldDesire').value || 'salary_27';
+      const desire = document.getElementById('fieldDesire').value || 'yes';
       const notes = (document.getElementById('fieldNotes').value || '').trim();
 
-      const isAutoRefillChecked = document.getElementById('autoGenerateRefill').checked;
-
-      const patientData = {
-        month: activeMonth,
-        serviceType,
-        name,
-        nationalId,
-        phone,
-        value,
-        prescriptionDate,
-        dueDate,
-        medications,
-        contacted,
-        desire,
-        notes,
-        pharmacist: pharmacistName
-      };
-
       if (recordId) {
-        const updateUrl = `https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${recordId}.json`;
-        fetch(updateUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patientData) })
-          .then(() => { resetFormToNew(); loadDataFromCloud(); alert('تم التحديث بنجاح!'); })
-          .catch(err => alert('حدث خطأ أثناء التحديث.'));
-      } else {
-        // حفظ المريض في الشهر الحالي
-        fetch(FIREBASE_DB_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patientData) })
-          .then(() => {
-            // إذا كان زر خيار "إعادة الصرف بعد 3 أشهر" مفعلاً
-            if (isAutoRefillChecked) {
-              const futureMonth = getFutureMonthString(activeMonth, 3);
-              const futureDueDate = dueDate ? getFutureMonthString(dueDate.substring(0, 7), 3) + dueDate.substring(7) : futureMonth + "-01";
-              
-              const futurePatientData = {
-                ...patientData,
-                month: futureMonth,
-                dueDate: futureDueDate,
-                contacted: 'no',
-                notes: notes ? notes + ' (تجديد تلقائي بعد 3 أشهر)' : 'تجديد تلقائي بعد 3 أشهر'
-              };
+        // Update Existing Record in Cloud
+        const index = masterData.findIndex(item => String(item.id) === String(recordId));
+        if (index !== -1) {
+          const existing = masterData[index];
+          const cycleData = existing.cycleData || {};
+          cycleData[activeMonth] = { contacted, desire };
 
-              fetch(FIREBASE_DB_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(futurePatientData) });
-            }
+          const updatedRecord = {
+            ...existing,
+            serviceType,
+            name,
+            nationalId,
+            phone,
+            value,
+            prescriptionDate,
+            dueDate,
+            refillInterval,
+            contacted,
+            desire,
+            notes,
+            cycleData,
+            pharmacist: pharmacistName
+          };
 
-            resetFormToNew();
-            loadDataFromCloud();
-            alert(`تم حفظ المريض بنجاح ${isAutoRefillChecked ? 'وتم تفعيل تذكير إعادة الصرف التلقائي بعد 3 أشهر!' : ''}`);
+          const updateUrl = `https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${recordId}.json`;
+          fetch(updateUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedRecord)
           })
-          .catch(err => alert('حدث خطأ أثناء الحفظ.'));
+          .then(() => {
+            loadDataFromCloud();
+            resetFormToNew();
+            alert('تم تحديث بيانات المريض بنجاح في السحابة!');
+          })
+          .catch(err => alert('حدث خطأ أثناء التحديث السحابي.'));
+        }
+      } else {
+        // Create New Record in Cloud
+        const cycleData = {};
+        cycleData[activeMonth] = { contacted, desire };
+
+        const newRecord = {
+          month: activeMonth,
+          serviceType,
+          name,
+          nationalId,
+          phone,
+          value,
+          prescriptionDate,
+          dueDate,
+          refillInterval,
+          contacted,
+          desire,
+          notes,
+          cycleData,
+          pharmacist: pharmacistName
+        };
+
+        fetch(FIREBASE_DB_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newRecord)
+        })
+        .then(() => {
+          loadDataFromCloud();
+          resetFormToNew();
+          alert('تم حفظ المريض بنجاح في السجل السحابي المشترك!');
+        })
+        .catch(err => alert('حدث خطأ أثناء الحفظ السحابي.'));
       }
     }
 
     function startEdit(id) {
       const record = masterData.find(item => String(item.id) === String(id));
       if (!record) return;
+
+      const activeMonth = document.getElementById('monthPicker').value;
+      const cycleSt = getCycleStatus(record, activeMonth);
 
       document.getElementById('fieldRecordId').value = record.id;
       document.getElementById('fieldName').value = record.name || '';
@@ -705,17 +887,19 @@
       document.getElementById('fieldMedications').value = record.medications || '';
       document.getElementById('fieldPrescriptionDate').value = record.prescriptionDate || '';
       document.getElementById('fieldDueDate').value = record.dueDate || '';
-      document.getElementById('fieldContacted').value = record.contacted || 'no';
-      document.getElementById('fieldDesire').value = record.desire || 'salary_27';
+      document.getElementById('fieldRefillInterval').value = record.refillInterval !== undefined ? record.refillInterval : 3;
+      document.getElementById('fieldContacted').value = cycleSt.contacted || 'no';
+      document.getElementById('fieldDesire').value = cycleSt.desire || 'yes';
       document.getElementById('fieldNotes').value = record.notes || '';
 
       const serviceRadio = document.querySelector(`input[name="fieldServiceType"][value="${record.serviceType}"]`);
       if (serviceRadio) serviceRadio.checked = true;
 
       document.getElementById('formIconBadge').innerText = '✏️';
-      document.getElementById('formHeading').innerText = `تعديل بيانات: ${record.name}`;
+      document.getElementById('formHeading').innerText = `تعديل بيانات المريض: ${record.name}`;
       document.getElementById('formModeBadge').innerText = 'وضع التعديل النشط';
-      document.getElementById('btnSaveText').innerText = 'تحديث البيانات';
+      document.getElementById('formModeBadge').className = 'text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded-full font-bold';
+      document.getElementById('btnSaveText').innerText = 'تحديث بيانات المريض الآن';
       document.getElementById('btnCancelEdit').classList.remove('hidden');
 
       updateFormValidityPreview();
@@ -730,64 +914,122 @@
       document.getElementById('fieldValue').value = '';
       document.getElementById('fieldMedications').value = '';
       document.getElementById('fieldPrescriptionDate').value = '';
-      
-      setDefaultDatesForSelectedMonth();
-
+      document.getElementById('fieldDueDate').value = '';
+      document.getElementById('fieldRefillInterval').value = 3;
       document.getElementById('fieldContacted').value = 'no';
-      document.getElementById('fieldDesire').value = 'salary_27';
+      document.getElementById('fieldDesire').value = 'yes';
       document.getElementById('fieldNotes').value = '';
 
       const firstRadio = document.querySelector('input[name="fieldServiceType"][value="insurance"]');
       if (firstRadio) firstRadio.checked = true;
 
       document.getElementById('formIconBadge').innerText = '➕';
-      document.getElementById('formHeading').innerText = 'تسجيل مريض جديد لشهر المتابعة المحدد';
-      document.getElementById('formModeBadge').innerText = 'وضع الإضافة السحابي';
-      document.getElementById('btnSaveText').innerText = 'حفظ المريض لشهر المختار';
+      document.getElementById('formHeading').innerText = 'تسجيل مريض جديد للمتابعة وإعادة الصرف (سحابي)';
+      document.getElementById('formModeBadge').innerText = 'وضع الإضافة';
+      document.getElementById('formModeBadge').className = 'text-[10px] bg-sky-500/20 text-sky-300 border border-sky-400/40 px-2 py-0.5 rounded-full font-bold';
+      document.getElementById('btnSaveText').innerText = 'حفظ المريض في السجل السحابي';
       document.getElementById('btnCancelEdit').classList.add('hidden');
 
       updateFormValidityPreview();
     }
 
+    // Delete Record from Cloud
     function deleteRecord(id) {
-      if (confirm('هل أنت متأكد من حذف هذا السجل من السحابة؟')) {
+      const record = masterData.find(item => String(item.id) === String(id));
+      const name = record ? record.name : 'هذا المريض';
+
+      if (confirm(`هل أنتِ متأكدة من حذف ملف المريض (${name}) من السحابة نهائياً؟`)) {
         const deleteUrl = `https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${id}.json`;
         fetch(deleteUrl, { method: 'DELETE' })
           .then(() => {
-            if (document.getElementById('fieldRecordId').value === String(id)) resetFormToNew();
+            if (document.getElementById('fieldRecordId').value === String(id)) {
+              resetFormToNew();
+            }
             loadDataFromCloud();
           })
-          .catch(err => alert('حدث خطأ أثناء الحذف.'));
+          .catch(err => alert('حدث خطأ أثناء الحذف السحابي.'));
       }
     }
 
+    // Toggle contact status directly from table row (Cloud Sync)
     function toggleContact(id) {
       const record = masterData.find(item => String(item.id) === String(id));
       if (!record) return;
-      const newContacted = record.contacted === 'yes' ? 'no' : 'yes';
-      const updateUrl = `https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${id}/contacted.json`;
-      fetch(updateUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newContacted) })
-        .then(() => loadDataFromCloud())
-        .catch(err => console.error(err));
+
+      const activeMonth = document.getElementById('monthPicker').value;
+      if (!record.cycleData) record.cycleData = {};
+      const curStatus = getCycleStatus(record, activeMonth);
+      const newStatus = curStatus.contacted === 'yes' ? 'no' : 'yes';
+      
+      record.cycleData[activeMonth] = {
+        contacted: newStatus,
+        desire: curStatus.desire || 'yes'
+      };
+      record.contacted = newStatus;
+
+      const updateUrl = `https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${id}.json`;
+      fetch(updateUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record)
+      })
+      .then(() => loadDataFromCloud())
+      .catch(err => console.error(err));
     }
 
+    // Export Current Month Data to Excel (UTF-8 BOM CSV)
     function exportToExcel() {
       const activeMonth = document.getElementById('monthPicker').value;
-      const monthPatients = masterData.filter(p => p.month === activeMonth);
+      const monthPatients = masterData.filter(p => isPatientInMonth(p, activeMonth));
 
       if (monthPatients.length === 0) {
         alert('لا توجد بيانات متاحة للتصدير في هذا الشهر.');
         return;
       }
 
-      const headers = ["م", "شهر_المتابعة", "نوع_الخدمة", "اسم_المريض", "الهوية", "رقم_الجوال", "تاريخ_الوصفة", "تاريخ_الاستحقاق", "الصلاحية", "الأصناف", "القيمة", "حالة_التواصل", "الرغبة", "الملاحظات"];
+      const headers = [
+        "م",
+        "شهر_المتابعة_المعروض",
+        "شهر_التسجيل_الأصلي",
+        "نوع_الخدمة",
+        "دورة_التكرار",
+        "اسم_المريض",
+        "الهوية_الإقامة",
+        "رقم_الجوال",
+        "تاريخ_الوصفة_الأصلية",
+        "تاريخ_الاستحقاق",
+        "صلاحية_الـ_9_أشهر",
+        "الأصناف_الدوائية",
+        "القيمة_التقديرية_ر_س",
+        "حالة_التواصل",
+        "رغبة_وإجراء_الصرف",
+        "الصيدلاني_المسؤول",
+        "الملاحظات_والتوجيهات"
+      ];
+
       const rows = monthPatients.map((p, idx) => {
         const val = calculateChronicValidity(p.prescriptionDate);
+        const adjDueDate = getAdjustedDueDateForMonth(p, activeMonth);
+        const cycleSt = getCycleStatus(p, activeMonth);
+        const intervalText = p.refillInterval === 0 ? 'بدون تكرار' : ('كل ' + (p.refillInterval || 3) + ' أشهر');
         return [
-          idx + 1, `"${p.month}"`, p.serviceType === 'insurance' ? 'تأمين مزمن' : 'وصفتي ريفيل',
-          `"${(p.name || '').replace(/"/g, '""')}"`, `"${(p.nationalId || '').replace(/"/g, '""')}"`, `"${p.phone || ''}"`,
-          p.prescriptionDate || '', p.dueDate || '', `"${val.text}"`, `"${(p.medications || '').replace(/"/g, '""')}"`,
-          p.value || 0, p.contacted === 'yes' ? 'تم التواصل' : 'لم يتم', p.desire, `"${(p.notes || '').replace(/"/g, '""')}"`
+          idx + 1,
+          '"' + activeMonth + '"',
+          '"' + (p.month || '') + '"',
+          p.serviceType === 'insurance' ? 'تأمين مزمن' : 'وصفتي ريفيل',
+          '"' + intervalText + '"',
+          '"' + (p.name || '').replace(/"/g, '""') + '"',
+          '"' + (p.nationalId || '').replace(/"/g, '""') + '"',
+          '"' + (p.phone || '') + '"',
+          p.prescriptionDate || '',
+          adjDueDate,
+          '"' + val.text + '"',
+          '"' + (p.medications || '').replace(/"/g, '""') + '"',
+          p.value || 0,
+          cycleSt.contacted === 'yes' ? 'تم التواصل' : 'لم يتم',
+          cycleSt.desire === 'yes' ? 'صرف فوري' : (cycleSt.desire === 'postponed' ? 'مؤجل' : 'لا يرغب'),
+          '"' + (p.pharmacist || '').replace(/"/g, '""') + '"',
+          '"' + (p.notes || '').replace(/"/g, '""') + '"'
         ];
       });
 
@@ -796,7 +1038,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `سجل_صيدلية_1081_${activeMonth}.csv`;
+      a.download = `سجل_إعادة_الصرف_صيدلية_الدواء_1081_${activeMonth}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -805,30 +1047,38 @@
 
     function escapeHtml(text) {
       if (!text) return '';
-      return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
+    // Event Listeners setup
     window.addEventListener('DOMContentLoaded', () => {
       loadDataFromCloud();
-      setDefaultDatesForSelectedMonth();
 
+      // Month Picker Change
       document.getElementById('monthPicker').addEventListener('change', () => {
-        setDefaultDatesForSelectedMonth();
         resetFormToNew();
         renderApp();
       });
 
-      ['filterSearch', 'filterType', 'filterContact', 'filterDesire'].forEach(id => {
+      // Filter Inputs
+      ['filterSearch', 'filterType', 'filterContact', 'filterDesire', 'filterValidity'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
-          el.addEventListener('input', renderApp);
-          el.addEventListener('change', renderApp);
-        }
+        if (el) el.addEventListener('input', renderApp);
+        if (el) el.addEventListener('change', renderApp);
       });
 
+      // Prescription Date Input (Real-time validity preview)
       document.getElementById('fieldPrescriptionDate').addEventListener('change', updateFormValidityPreview);
+
+      // Export Button
       document.getElementById('btnExportExcel').addEventListener('click', exportToExcel);
 
+      // Auto-refresh sync every 5 seconds across all devices
       setInterval(loadDataFromCloud, 5000);
     });
   </script>

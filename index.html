@@ -32,7 +32,7 @@
                     <option value="يناير 2027">يناير 2027</option>
                 </select>
             </div>
-            <button onclick="alert('حالة السيرفر: متصل بقاعدة البيانات السحابية المشتركة')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1"><i class="fas fa-user-md"></i> صيدلاني الفرع</button>
+            <button onclick="alert('حالة السيرفر: متصل بقاعدة البيانات السحابية الجديدة بنجاح')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1"><i class="fas fa-user-md"></i> صيدلاني الفرع</button>
             <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1"><i class="fas fa-file-excel"></i> تصدير Excel</button>
             <button onclick="loadPatients()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1"><i class="fas fa-sync-alt"></i> استرجاع</button>
         </div>
@@ -73,7 +73,7 @@
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 mb-6">
         <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
             <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-user-plus text-blue-600"></i> تسجيل مريض جديد للمتابعة وإعادة الصرف</h2>
-            <span class="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full border border-blue-200">وضع الإضافة السحابي</span>
+            <span class="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full border border-blue-200">وضع الإضافة السحابي النشط</span>
         </div>
         
         <form id="patientForm" onsubmit="savePatient(event)" class="space-y-4">
@@ -149,7 +149,7 @@
             </div>
 
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
-                <i class="fas fa-save"></i> حفظ المريض في السجل السحابي المشترك
+                <i class="fas fa-save"></i> حفظ المريض في السجل السحابي الجديد
             </button>
         </form>
     </div>
@@ -176,14 +176,14 @@
                     </tr>
                 </thead>
                 <tbody id="patientsTable" class="divide-y divide-slate-100">
-                    <tr><td colspan="9" class="p-6 text-center text-slate-400">جاري تحميل سجلات المرضى والبيانات السحابية...</td></tr>
+                    <tr><td colspan="9" class="p-6 text-center text-slate-400">جاري الاتصال بقاعدة البيانات السحابية الجديدة...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        const DB_URL = "https://pharmacy-1081-default-rtdb.asia-southeast1.firebasedatabase.app/patients.json";
+        const DB_URL = "https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients.json";
         let currentPatients = {};
 
         function loadPatients() {
@@ -195,7 +195,7 @@
                 })
                 .catch(err => {
                     console.error("خطأ في الاتصال:", err);
-                    document.getElementById('patientsTable').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-500">تعذر الاتصال بقاعدة البيانات السحابية.</td></tr>`;
+                    document.getElementById('patientsTable').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-500">تعذر الاتصال بقاعدة البيانات. تأكد من ضبط قواعد الأمان Rules في Firebase.</td></tr>`;
                 });
         }
 
@@ -272,7 +272,7 @@
             .then(() => {
                 document.getElementById('patientForm').reset();
                 loadPatients();
-                alert('تم حفظ المريض بنجاح في السجل السحابي المشترك!');
+                alert('تم حفظ المريض بنجاح في السجل السحابي الجديد!');
             })
             .catch(err => {
                 alert('حدث خطأ أثناء الحفظ.');
@@ -282,7 +282,7 @@
 
         function deletePatient(id) {
             if (confirm('هل أنت متأكد من حذف هذا المريض من السجل المشترك؟')) {
-                fetch(`https://pharmacy-1081-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${id}.json`, {
+                fetch(`https://parm-fbafc-default-rtdb.asia-southeast1.firebasedatabase.app/patients/${id}.json`, {
                     method: 'DELETE'
                 })
                 .then(() => {
